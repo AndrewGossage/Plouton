@@ -9,15 +9,18 @@ OUTPUT_DIR = ./dist
 SRC_DIR = ./src
 TARGET = main
 EXECUTABLE = $(OUTPUT_DIR)/$(TARGET)
-  
+
+# Find all .c files in src directory
+SOURCES != ls $(SRC_DIR)/*.c 
+
 all: $(EXECUTABLE)
 
 $(OUTPUT_DIR):
 	@mkdir -p $(OUTPUT_DIR)
 
-$(EXECUTABLE): $(SRC_DIR)/$(TARGET).c $(OUTPUT_DIR)
+$(EXECUTABLE): $(SOURCES) $(OUTPUT_DIR)
 	@echo "Compiling $(TARGET)..."
-	@$(CC) $(CFLAGS) -o $(EXECUTABLE) $(SRC_DIR)/$(TARGET).c
+	@$(CC) $(CFLAGS) -o $(EXECUTABLE) $(SOURCES)
 	@echo "Done!"
 
 run: $(EXECUTABLE)
