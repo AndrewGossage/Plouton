@@ -8,17 +8,22 @@ CFLAGS  = -g -Wall
 OUTPUT_DIR = ./dist
 SRC_DIR = ./src
 TARGET = main
+EXECUTABLE = $(OUTPUT_DIR)/$(TARGET)
   
-all: $(TARGET)
+all: $(EXECUTABLE)
 
 $(OUTPUT_DIR):
-	mkdir -p $(OUTPUT_DIR)
+	@mkdir -p $(OUTPUT_DIR)
 
-$(TARGET): $(SRC_DIR)/$(TARGET).c $(OUTPUT_DIR)
-	$(CC) $(CFLAGS) -o $(OUTPUT_DIR)/$(TARGET) $(SRC_DIR)/$(TARGET).c 
+$(EXECUTABLE): $(SRC_DIR)/$(TARGET).c $(OUTPUT_DIR)
+	@echo "Compiling $(TARGET)..."
+	@$(CC) $(CFLAGS) -o $(EXECUTABLE) $(SRC_DIR)/$(TARGET).c
+	@echo "Done!"
 
-run: $(TARGET)
-	$(OUTPUT_DIR)/$(TARGET)
+run: $(EXECUTABLE)
+	@$(EXECUTABLE)
 
 clean:
-	rm -rf $(OUTPUT_DIR)
+	@rm -rf $(OUTPUT_DIR)
+
+.PHONY: all run clean

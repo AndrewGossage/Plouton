@@ -13,6 +13,9 @@ typedef enum {
 typedef enum {
     ADD,
     SUB,
+    SETX,
+    SETY,
+
 } Fn;
 
 typedef union {
@@ -66,6 +69,17 @@ void free_TokenV(TokenV *vec) {
         free(vec);
     }
 }
+float last_acc = 0;
+float X = 1;
+float Y = 2;
+
+void setter_fn(float acc, Fn tag) {
+    if (tag == SETX) {
+        X = acc;
+    } else if (tag == SETY) {
+        Y = acc;
+    }
+}
 
 int run_str(char s[]) {
     TokenV *tokens = create_TokenV(10);
@@ -94,6 +108,25 @@ int run_str(char s[]) {
 
                 x.val.fn = SUB;
                 push_TokenV(tokens, x);
+            } else if (strncmp(token, "|x", 2) == 0) {
+                x.val.fn = SETX;
+                push_TokenV(tokens, x);
+            } else if (strncmp(token, "|y", 2) == 0) {
+                x.val.fn = SETY;
+                push_TokenV(tokens, x);
+            } else if (strncmp(token, "$x", 2) == 0) {
+                x.tag = NUMBER;
+                x.val.number = X;
+                push_TokenV(tokens, x);
+            } else if (strncmp(token, "$y", 2) == 0) {
+                x.tag = NUMBER;
+                x.val.number = Y;
+                push_TokenV(tokens, x);
+
+            } else if (strncmp(token, "$", 1) == 0) {
+                x.tag = NUMBER;
+                x.val.number = last_acc;
+                push_TokenV(tokens, x);
             }
         }
 
@@ -105,23 +138,37 @@ int run_str(char s[]) {
         for (int i = 0; i < tokens->len; i++) {
             if (tokens->list[i].tag == NUMBER) {
                 acc += tokens->list[i].val.number;
+            } else if (tokens->list[i].tag == FUNCTION) {
+                setter_fn(acc, tokens->list[i].val.fn);
             }
         }
     } else if (tokens->list[0].val.fn == SUB) {
-        acc += tokens->list[0].val.number;
-        for (int i = 1; i < tokens->len; i++) {
+        acc = tokens->list[1].val.number;
+        for (int i = 2; i < tokens->len; i++) {
             if (tokens->list[i].tag == NUMBER) {
-                acc += tokens->list[i].val.number;
+                acc -= tokens->list[i].val.number;
+            } else if (tokens->list[i].tag == FUNCTION) {
+                setter_fn(acc, tokens->list[i].val.fn);
             }
         }
     }
 
-    printf("%f\n", acc);
+    printf("->%f\n", acc);
 
     free_TokenV(tokens);
+    last_acc = acc;
     return acc;
 }
+
 int main() {
-    char s[] = "add 13 12";
-    run_str(s);
+    char s[100];
+    printf("Enter a command\n");
+    while (1) {
+        printf("\n:");
+        fgets(s, sizeof(s), stdin);
+        if (strncmp(s, "quit", 4) == 0) {
+            return 0;
+        }
+        run_str(s);
+    }
 }
