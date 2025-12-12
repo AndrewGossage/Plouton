@@ -8,12 +8,12 @@ typedef enum {
     FUNCTION,
     START,
     END,
+    SCOPE,
 } TokenTag;
 
 typedef enum {
     ADD,
     SUB,
-    SCOPE,
     SETX,
     SETY,
 } Fn;

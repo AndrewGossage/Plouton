@@ -1,7 +1,7 @@
 #include "run.h"
+#include "token.h"
 #include <stdio.h>
 #include <string.h>
-
 int main() {
     char s[100];
     printf("Enter a command\n");
@@ -11,6 +11,6 @@ int main() {
         if (strncmp(s, "quit", 4) == 0) {
             return 0;
         }
-        run_str(s);
+        TokenV t = run_str(s);
     }
 }
