@@ -1,4 +1,5 @@
 
+#include "run.h"
 #include "token.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,43 +39,67 @@ void print_token(Token t) {
         break;
     }
 }
+int check_debug() {
+    char *val = getenv("DEBUG_TREE");
+
+    if (val != NULL && val[0] != '\0') {
+        return 1;
+    }
+    return 0;
+}
+
+float run_sub(TokenV *tokens) {
+    float acc = tokens->list[1].val.number;
+    for (int i = 2; i < tokens->len; i++) {
+        Token t = tokens->list[i];
+        if (t.tag == SCOPE) {
+            acc -= run_tokens(t.val.scope);
+        } else if (t.tag == NUMBER) {
+            acc -= t.val.number;
+        } else if (t.tag == FUNCTION) {
+            setter_fn(acc, tokens->list[i].val.fn);
+        }
+    }
+    return acc;
+}
+
+float run_add(TokenV *tokens) {
+    float acc = tokens->list[1].val.number;
+    for (int i = 2; i < tokens->len; i++) {
+        Token t = tokens->list[i];
+        if (t.tag == SCOPE) {
+            acc += run_tokens(t.val.scope);
+        } else if (t.tag == NUMBER) {
+            acc += t.val.number;
+        } else if (t.tag == FUNCTION) {
+            setter_fn(acc, tokens->list[i].val.fn);
+        }
+    }
+    return acc;
+}
+
 float run_tokens(TokenV *tokens) {
     float acc = 0;
-
-    for (int i = 0; i < tokens->len; i++) {
-        print_token(tokens->list[i]);
-    }
-    if (tokens->list[0].tag != FUNCTION) {
-        for (int i = 0; i < tokens->len; i++) {
-            print_token(tokens->list[i]);
-        }
+    if (tokens->len == 0) {
+        return 0;
     }
 
-    if (tokens->list[0].val.fn == ADD) {
-        for (int i = 0; i < tokens->len; i++) {
-            Token t = tokens->list[i];
+    if (check_debug()) {
 
-            if (t.tag == SCOPE) {
-                printf("SCOPE\n");
-            } else if (t.tag == NUMBER) {
-                acc += t.val.number;
-            } else if (t.tag == FUNCTION) {
-                setter_fn(acc, tokens->list[i].val.fn);
+        if (tokens->list[0].tag != FUNCTION) {
+            for (int i = 0; i < tokens->len; i++) {
+                print_token(tokens->list[i]);
             }
         }
-    } else if (tokens->list[0].val.fn == SUB) {
-        acc = tokens->list[1].val.number;
-        for (int i = 2; i < tokens->len; i++) {
-            Token t = tokens->list[i];
-            if (t.tag == NUMBER) {
-                acc += t.val.number;
-            } else if (t.tag == FUNCTION) {
-                setter_fn(acc, tokens->list[i].val.fn);
-            }
-        }
-    } else {
     }
-
+    Token first = tokens->list[0];
+    if ((first.tag == FUNCTION && tokens->list[0].val.fn == ADD) ||
+        first.tag == SCOPE) {
+        acc = run_add(tokens);
+    } else if (first.tag == FUNCTION && tokens->list[0].val.fn == SUB) {
+        acc = run_sub(tokens);
+    }
+    free_TokenV(tokens);
     printf("->%0.2f\n", acc);
     return acc;
 }
@@ -100,7 +125,16 @@ char *substring(const char *start, const char *end) {
 
 char *find_end(char *s) {
     char *end = s;
-    while (end[0] != ')' && end[0] != '\n') {
+    int depth = 1;
+    while (end[0] != '\n') {
+        if (depth <= 0) {
+            return end;
+        }
+        if (end[0] == ')') {
+            depth--;
+        } else if (end[0] == '(') {
+            depth++;
+        }
         end++;
     }
     return end;
@@ -123,10 +157,19 @@ TokenV *run_str(char s[]) {
             push_TokenV(tokens, x);
         } else if (strncmp(token, "(", 1) == 0) {
             Token x;
+
             char *end = find_end(rest);
             char *subs = substring(rest, end);
+
             x.tag = SCOPE;
+
             x.val.scope = run_str(subs);
+            push_TokenV(tokens, x);
+
+            free(subs);
+
+            strtok(end, " ");
+
         } else {
             // Handle other tokens (FUNCTION, variables, etc.)
             Token x;
