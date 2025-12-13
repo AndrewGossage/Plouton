@@ -1,7 +1,7 @@
 #pragma once
 
 // Forward declaration
-typedef struct TokenV TokenV;
+typedef struct TokenTree TokenTree;
 
 typedef enum {
     NUMBER,
@@ -22,22 +22,24 @@ typedef union {
     float number;
     char *string;
     int active;
-    TokenV *scope;  // Now TokenV is known
+    TokenTree *scope;  // Now TokenTree is known
     Fn fn;
 } TokenPayload;
 
 typedef struct {
     TokenTag tag;
     TokenPayload val;
+    unsigned long id;
 } Token;
 
-struct TokenV {  // Define the struct here
+struct TokenTree {  // Define the struct here
     Token *list;
     int len;
     int cap;
 };
 
 // Function declarations
-TokenV *create_TokenV(int cap); 
-int push_TokenV(TokenV *u, Token x); 
-void free_TokenV(TokenV *vec);
+TokenTree *TokenTree_new(int cap); 
+
+int TokenTree_push(TokenTree *u, Token x); 
+void TokenTree_free(TokenTree *vec);

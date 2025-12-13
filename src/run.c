@@ -4,10 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define F_LIMIT 10
+
 float last_acc = 0;
 float X = 1;
 float Y = 2;
-
 void setter_fn(float acc, Fn tag) {
     if (tag == SETX) {
         X = acc;
@@ -15,6 +17,31 @@ void setter_fn(float acc, Fn tag) {
         Y = acc;
     }
 }
+
+TokenTree global_functions;
+int global_functions_init() {
+    global_functions.cap = F_LIMIT;
+    global_functions.len = 0;
+    global_functions.list = malloc(F_LIMIT * sizeof(Token));
+    if (!global_functions.list) {
+        fprintf(stderr, "allocation failed\n");
+        return 1;
+    }
+    return 0;
+}
+
+// djb2 by dan bernstein
+unsigned long hash(unsigned char *str) {
+    unsigned long hash = 5381;
+    int c;
+
+    while ((c = *str++))
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+    return hash;
+}
+
+void global_functions_deinit() { free(global_functions.list); }
 
 void print_token(Token t) {
     switch (t.tag) {
@@ -48,12 +75,12 @@ int check_debug() {
     return 0;
 }
 
-float run_sub(TokenV *tokens) {
+float run_sub(TokenTree *tokens) {
     float acc = tokens->list[1].val.number;
     for (int i = 2; i < tokens->len; i++) {
         Token t = tokens->list[i];
         if (t.tag == SCOPE) {
-            acc -= run_tokens(t.val.scope);
+            acc -= TokenTree_run(t.val.scope);
         } else if (t.tag == NUMBER) {
             acc -= t.val.number;
         } else if (t.tag == FUNCTION) {
@@ -63,12 +90,12 @@ float run_sub(TokenV *tokens) {
     return acc;
 }
 
-float run_add(TokenV *tokens) {
+float run_add(TokenTree *tokens) {
     float acc = tokens->list[1].val.number;
     for (int i = 2; i < tokens->len; i++) {
         Token t = tokens->list[i];
         if (t.tag == SCOPE) {
-            acc += run_tokens(t.val.scope);
+            acc += TokenTree_run(t.val.scope);
         } else if (t.tag == NUMBER) {
             acc += t.val.number;
         } else if (t.tag == FUNCTION) {
@@ -78,7 +105,7 @@ float run_add(TokenV *tokens) {
     return acc;
 }
 
-float run_tokens(TokenV *tokens) {
+float TokenTree_run(TokenTree *tokens) {
     float acc = 0;
     if (tokens->len == 0) {
         return 0;
@@ -95,11 +122,20 @@ float run_tokens(TokenV *tokens) {
     Token first = tokens->list[0];
     if ((first.tag == FUNCTION && tokens->list[0].val.fn == ADD) ||
         first.tag == SCOPE) {
-        acc = run_add(tokens);
+        for (int i = 0; i < tokens->len; i++) {
+            Token t = tokens->list[i];
+
+            if (t.tag == SCOPE) {
+                acc += TokenTree_run(t.val.scope);
+            } else if (t.tag == NUMBER) {
+                acc += t.val.number;
+            } else if (t.tag == FUNCTION) {
+                setter_fn(acc, tokens->list[i].val.fn);
+            }
+        }
     } else if (first.tag == FUNCTION && tokens->list[0].val.fn == SUB) {
         acc = run_sub(tokens);
     }
-    free_TokenV(tokens);
     printf("->%0.2f\n", acc);
     return acc;
 }
@@ -139,8 +175,8 @@ char *find_end(char *s) {
     }
     return end;
 }
-TokenV *run_str(char s[]) {
-    TokenV *tokens = create_TokenV(10);
+TokenTree *TokenTree_parse(char s[]) {
+    TokenTree *tokens = TokenTree_new(10);
     char *rest = s;
     char *token = strtok(s, " ");
 
@@ -154,7 +190,7 @@ TokenV *run_str(char s[]) {
             Token x;
             x.tag = NUMBER;
             x.val.number = result;
-            push_TokenV(tokens, x);
+            TokenTree_push(tokens, x);
         } else if (strncmp(token, "(", 1) == 0) {
             Token x;
 
@@ -163,8 +199,8 @@ TokenV *run_str(char s[]) {
 
             x.tag = SCOPE;
 
-            x.val.scope = run_str(subs);
-            push_TokenV(tokens, x);
+            x.val.scope = TokenTree_parse(subs);
+            TokenTree_push(tokens, x);
 
             free(subs);
 
@@ -173,31 +209,35 @@ TokenV *run_str(char s[]) {
         } else {
             // Handle other tokens (FUNCTION, variables, etc.)
             Token x;
+            x.id = 0;
             x.tag = FUNCTION;
-            if (strncmp(token, "add", 3) == 0) {
+            if (strncmp(token, "fn", 2) == 0) {
+                token = strtok(NULL, " ");
+                printf("hash: %d\n", (int)hash((unsigned char *)token));
+            } else if (strncmp(token, "add", 3) == 0) {
                 x.val.fn = ADD;
-                push_TokenV(tokens, x);
+                TokenTree_push(tokens, x);
             } else if (strncmp(token, "sub", 3) == 0) {
                 x.val.fn = SUB;
-                push_TokenV(tokens, x);
+                TokenTree_push(tokens, x);
             } else if (strncmp(token, "|x", 2) == 0) {
                 x.val.fn = SETX;
-                push_TokenV(tokens, x);
+                TokenTree_push(tokens, x);
             } else if (strncmp(token, "|y", 2) == 0) {
                 x.val.fn = SETY;
-                push_TokenV(tokens, x);
+                TokenTree_push(tokens, x);
             } else if (strncmp(token, "$x", 2) == 0) {
                 x.tag = NUMBER;
                 x.val.number = X;
-                push_TokenV(tokens, x);
+                TokenTree_push(tokens, x);
             } else if (strncmp(token, "$y", 2) == 0) {
                 x.tag = NUMBER;
                 x.val.number = Y;
-                push_TokenV(tokens, x);
+                TokenTree_push(tokens, x);
             } else if (strncmp(token, "$", 1) == 0) {
                 x.tag = NUMBER;
                 x.val.number = last_acc;
-                push_TokenV(tokens, x);
+                TokenTree_push(tokens, x);
             }
         }
         token = strtok(NULL, " ");

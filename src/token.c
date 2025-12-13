@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-TokenV *create_TokenV(int cap) {
-    TokenV *vec = malloc(sizeof(TokenV));
+TokenTree *TokenTree_new(int cap) {
+    TokenTree *vec = malloc(sizeof(TokenTree));
     if (vec == NULL) {
         return NULL;
     }
@@ -17,7 +17,7 @@ TokenV *create_TokenV(int cap) {
     return vec;
 }
 
-int push_TokenV(TokenV *u, Token x) {
+int TokenTree_push(TokenTree *u, Token x) {
     if (u->len >= u->cap) {
         // todo actually handle resize
         return 1;
@@ -29,7 +29,14 @@ int push_TokenV(TokenV *u, Token x) {
     return 0;
 }
 
-void free_TokenV(TokenV *vec) {
+void TokenTree_free(TokenTree *vec) {
+    for (int i = 0; i < vec->len; i++) {
+        Token t = vec->list[i];
+
+        if (t.tag == SCOPE) {
+            TokenTree_free(t.val.scope);
+        }
+    }
     if (vec != NULL) {
         free(vec->list);
         free(vec);
