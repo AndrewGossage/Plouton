@@ -40,31 +40,42 @@ void print_token(Token t) {
 }
 float run_tokens(TokenV *tokens) {
     float acc = 0;
+
+    for (int i = 0; i < tokens->len; i++) {
+        print_token(tokens->list[i]);
+    }
     if (tokens->list[0].tag != FUNCTION) {
         for (int i = 0; i < tokens->len; i++) {
             print_token(tokens->list[i]);
         }
-    } else if (tokens->list[0].val.fn == ADD) {
+    }
+
+    if (tokens->list[0].val.fn == ADD) {
         for (int i = 0; i < tokens->len; i++) {
-            if (tokens->list[i].tag == NUMBER) {
-                acc += tokens->list[i].val.number;
-            } else if (tokens->list[i].tag == FUNCTION) {
+            Token t = tokens->list[i];
+
+            if (t.tag == SCOPE) {
+                printf("SCOPE\n");
+            } else if (t.tag == NUMBER) {
+                acc += t.val.number;
+            } else if (t.tag == FUNCTION) {
                 setter_fn(acc, tokens->list[i].val.fn);
             }
         }
     } else if (tokens->list[0].val.fn == SUB) {
         acc = tokens->list[1].val.number;
         for (int i = 2; i < tokens->len; i++) {
-            if (tokens->list[i].tag == NUMBER) {
-                acc -= tokens->list[i].val.number;
-            } else if (tokens->list[i].tag == FUNCTION) {
+            Token t = tokens->list[i];
+            if (t.tag == NUMBER) {
+                acc += t.val.number;
+            } else if (t.tag == FUNCTION) {
                 setter_fn(acc, tokens->list[i].val.fn);
             }
         }
     } else {
     }
 
-    printf("->%0.2f", acc);
+    printf("->%0.2f\n", acc);
     return acc;
 }
 
@@ -148,6 +159,5 @@ TokenV *run_str(char s[]) {
         }
         token = strtok(NULL, " ");
     }
-    run_tokens(tokens);
     return tokens;
 }
