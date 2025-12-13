@@ -49,7 +49,7 @@ void print_token(Token t) {
         printf(" - number \n ");
         break;
     case FUNCTION:
-        printf(" - function \n ");
+        printf(" - function #%d\n ", (int)t.id);
         break;
     case START:
         printf(" - start \n ");
@@ -90,21 +90,6 @@ float run_sub(TokenTree *tokens) {
     return acc;
 }
 
-float run_add(TokenTree *tokens) {
-    float acc = tokens->list[1].val.number;
-    for (int i = 2; i < tokens->len; i++) {
-        Token t = tokens->list[i];
-        if (t.tag == SCOPE) {
-            acc += TokenTree_run(t.val.scope);
-        } else if (t.tag == NUMBER) {
-            acc += t.val.number;
-        } else if (t.tag == FUNCTION) {
-            setter_fn(acc, tokens->list[i].val.fn);
-        }
-    }
-    return acc;
-}
-
 float TokenTree_run(TokenTree *tokens) {
     float acc = 0;
     if (tokens->len == 0) {
@@ -113,10 +98,8 @@ float TokenTree_run(TokenTree *tokens) {
 
     if (check_debug()) {
 
-        if (tokens->list[0].tag != FUNCTION) {
-            for (int i = 0; i < tokens->len; i++) {
-                print_token(tokens->list[i]);
-            }
+        for (int i = 0; i < tokens->len; i++) {
+            print_token(tokens->list[i]);
         }
     }
     Token first = tokens->list[0];
@@ -129,13 +112,26 @@ float TokenTree_run(TokenTree *tokens) {
                 acc += TokenTree_run(t.val.scope);
             } else if (t.tag == NUMBER) {
                 acc += t.val.number;
-            } else if (t.tag == FUNCTION) {
-                setter_fn(acc, tokens->list[i].val.fn);
+            } else if (t.tag == FUNCTION && t.id != 0) {
+                Token *fns = global_functions.list;
+                printf("^^%d\n", (int)t.id);
+
+                for (int i = 0; i < global_functions.len; i++) {
+                    Token x = fns[i];
+                    printf("#%d\n", (int)x.id);
+                    if (x.id == t.id) {
+                        printf("#%d found\n", (int)x.id);
+
+                        acc += TokenTree_run(x.val.scope);
+                        break;
+                    }
+                }
             }
         }
     } else if (first.tag == FUNCTION && tokens->list[0].val.fn == SUB) {
         acc = run_sub(tokens);
     }
+
     printf("->%0.2f\n", acc);
     return acc;
 }
@@ -178,7 +174,7 @@ char *find_end(char *s) {
 TokenTree *TokenTree_parse(char s[]) {
     TokenTree *tokens = TokenTree_new(10);
     char *rest = s;
-    char *token = strtok(s, " ");
+    char *token = strtok(s, " \n");
 
     while (token != NULL) {
         rest = token + strlen(token) + 1;
@@ -213,30 +209,37 @@ TokenTree *TokenTree_parse(char s[]) {
             x.tag = FUNCTION;
             if (strncmp(token, "fn", 2) == 0) {
                 token = strtok(NULL, " ");
-                printf("hash: %d\n", (int)hash((unsigned char *)token));
-            } else if (strncmp(token, "add", 3) == 0) {
+                const unsigned long id = hash((unsigned char *)token);
+                printf("DEFINITION %d -%s- \n", (int)id, token);
+
+                token = strtok(NULL, " ");
+                Token x;
+
+                rest = token + strlen(token) + 1;
+                char *end = find_end(rest);
+                char *subs = substring(rest, end);
+                printf(" : %s :\n", subs);
+
+                x.tag = DEFINITION;
+                x.val.scope = TokenTree_parse(subs);
+                x.id = id;
+                TokenTree_push(&global_functions, x);
+                free(subs);
+                strtok(end, " ");
+            } else if (token[0] == '$') {
+                char *sub_token = token + 1;
+                x.tag = FUNCTION;
+                x.val.fn = USER_FUNCTION;
+                x.id = hash((unsigned char *)sub_token);
+                printf("CALL %d -%s-\n", (int)x.id, sub_token);
+
+                TokenTree_push(tokens, x);
+
+            } else if (strncmp(token, "+", 1) == 0) {
                 x.val.fn = ADD;
                 TokenTree_push(tokens, x);
-            } else if (strncmp(token, "sub", 3) == 0) {
+            } else if (strncmp(token, "-", 1) == 0) {
                 x.val.fn = SUB;
-                TokenTree_push(tokens, x);
-            } else if (strncmp(token, "|x", 2) == 0) {
-                x.val.fn = SETX;
-                TokenTree_push(tokens, x);
-            } else if (strncmp(token, "|y", 2) == 0) {
-                x.val.fn = SETY;
-                TokenTree_push(tokens, x);
-            } else if (strncmp(token, "$x", 2) == 0) {
-                x.tag = NUMBER;
-                x.val.number = X;
-                TokenTree_push(tokens, x);
-            } else if (strncmp(token, "$y", 2) == 0) {
-                x.tag = NUMBER;
-                x.val.number = Y;
-                TokenTree_push(tokens, x);
-            } else if (strncmp(token, "$", 1) == 0) {
-                x.tag = NUMBER;
-                x.val.number = last_acc;
                 TokenTree_push(tokens, x);
             }
         }

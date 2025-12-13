@@ -9,6 +9,7 @@ typedef enum {
     START,
     END,
     SCOPE,
+    DEFINITION,
 } TokenTag;
 
 typedef enum {
@@ -16,6 +17,7 @@ typedef enum {
     SUB,
     SETX,
     SETY,
+    USER_FUNCTION,
 } Fn;
 
 typedef union {

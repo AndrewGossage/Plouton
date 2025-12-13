@@ -25,6 +25,7 @@ int TokenTree_push(TokenTree *u, Token x) {
     const int i = u->len; // Use current len as index
     u->list[i].tag = x.tag;
     u->list[i].val = x.val;
+    u->list[i].id = x.id;
     u->len += 1; // Increment after using as index
     return 0;
 }
