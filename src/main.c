@@ -51,7 +51,9 @@ int run_file(char *filename) {
     /* do something with buffer */
     TokenTree *t = TokenTree_parse(buffer);
     if (t) {
-        TokenTree_run(t);
+        float res = TokenTree_run(t, NULL);
+        printf("->%0.2f\n", res);
+
         TokenTree_free(t);
     } else {
         printf("Could not parse file\n");
@@ -84,7 +86,8 @@ int main(int argc, char *argv[]) {
         }
         TokenTree *t = TokenTree_parse(s);
         if (t) {
-            TokenTree_run(t);
+            float res = TokenTree_run(t, NULL);
+            printf("->%0.2f\n", res);
             TokenTree_free(t);
         }
     }

@@ -15,9 +15,11 @@ typedef enum {
 typedef enum {
     ADD,
     SUB,
-    SETX,
-    SETY,
+    DIV,
+    MUL,
+    GET,
     USER_FUNCTION,
+
 } Fn;
 
 typedef union {
