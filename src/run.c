@@ -39,7 +39,6 @@ void global_functions_deinit() { free(global_functions.list); }
 void print_token(Token t) {
     switch (t.tag) {
     case NUMBER:
-        printf(" - number \n ");
         break;
     case FUNCTION:
         printf(" - function #%d\n ", (int)t.id);
@@ -81,13 +80,22 @@ float run_sub(TokenTree *tokens) {
     return acc;
 }
 
-float add(float a, float b) { return a + b; }
-
-float subtract(float a, float b) { return a - b; }
-
-float multiply(float a, float b) { return a * b; }
-
-float divide(float a, float b) { return a / b; }
+float add(float a, float b) {
+    printf("add(%f, %f) = %f\n", a, b, a + b);
+    return a + b;
+}
+float subtract(float a, float b) {
+    printf("subtract(%f, %f) = %f\n", a, b, a - b);
+    return a - b;
+}
+float multiply(float a, float b) {
+    printf("multiply(%f, %f) = %f\n", a, b, a * b);
+    return a * b;
+}
+float divide(float a, float b) {
+    printf("divide(%f, %f) = %f\n", a, b, a / b);
+    return a / b;
+}
 
 typedef float (*operation_func)(float, float);
 operation_func get_operation(Fn f) {
@@ -121,11 +129,32 @@ float TokenTree_run(TokenTree *tokens, TokenTree *scope) {
     }
     for (int i = 0; i < tokens->len; i++) {
         Token t = tokens->list[i];
-        if (acc == 0 && t.tag == NUMBER && i == 1) {
-            acc = t.val.number;
+        if (i == 1) {
+            // Handle first operand - could be NUMBER, SCOPE, GET, or user
+            // function
+            if (t.tag == FUNCTION && t.val.fn == GET) {
+                t = scope->list[t.id + 1];
+            }
+
+            // Now evaluate whatever t is
+            if (t.tag == NUMBER) {
+                acc = t.val.number;
+            } else if (t.tag == SCOPE) {
+                acc = TokenTree_run(t.val.scope, t.val.scope);
+            }
+            // ... other cases
             continue;
         }
         if (t.tag == FUNCTION && t.val.fn == GET) {
+            printf("GET $%d from scope with %d tokens\n", (int)t.id,
+                   scope ? scope->len : -1);
+            if (scope) {
+                printf("  accessing scope->list[%d] = %f\n", (int)(t.id + 1),
+                       t.val.number);
+                for (int k = 0; k < scope->len; k++) {
+                    printf("  scope[%d]: tag=%d\n", k, scope->list[k].tag);
+                }
+            }
             t = scope->list[t.id + 1];
         }
         if (t.tag == SCOPE) {
@@ -134,10 +163,17 @@ float TokenTree_run(TokenTree *tokens, TokenTree *scope) {
             acc = op(acc, t.val.number);
         } else if (t.tag == FUNCTION && t.id != 0) {
             Token *fns = global_functions.list;
-            for (int j = 0; j < global_functions.len; j++) { // Changed to 'j'
-                Token x = fns[j]; // Changed to use 'j'
+            printf("Calling user function, tokens->len=%d\n", tokens->len);
+            for (int k = 0; k < tokens->len; k++) {
+                printf("  tokens[%d]: tag=%d\n", k, tokens->list[k].tag);
+                if (tokens->list[k].tag == NUMBER) {
+                    printf("    value=%f\n", tokens->list[k].val.number);
+                }
+            }
+            for (int j = 0; j < global_functions.len; j++) {
+                Token x = fns[j];
                 if (x.id == t.id) {
-                    acc = op(acc, TokenTree_run(x.val.scope, tokens));
+                    return op(acc, TokenTree_run(x.val.scope, tokens));
                     break;
                 }
             }
@@ -204,7 +240,6 @@ TokenTree *TokenTree_parse(char s[]) {
 
             char *end = find_end(rest);
             char *subs = substring(rest, end);
-
             x.tag = SCOPE;
 
             x.val.scope = TokenTree_parse(subs);
@@ -212,7 +247,8 @@ TokenTree *TokenTree_parse(char s[]) {
 
             free(subs);
 
-            strtok(end, " ");
+            token = strtok(end, " ");
+            continue;
 
         } else {
             // Handle other tokens (FUNCTION, variables, etc.)
@@ -232,11 +268,14 @@ TokenTree *TokenTree_parse(char s[]) {
                 x.id = id;
                 TokenTree_push(&global_functions, x);
                 free(subs);
-                strtok(end, " ");
+                token = strtok(end, " ");
+                continue;
             } else if (token[0] == '!') {
                 char *sub_token = token + 1;
                 x.tag = FUNCTION;
                 x.val.fn = USER_FUNCTION;
+                printf("TOKEN::%s:: REST::%s::", token, rest);
+
                 x.id = hash((unsigned char *)sub_token);
 
                 TokenTree_push(tokens, x);
@@ -244,7 +283,6 @@ TokenTree *TokenTree_parse(char s[]) {
                 char *sub_token = token + 1;
                 x.tag = FUNCTION;
                 x.val.fn = GET;
-
                 x.id = strtol(sub_token, NULL, 10);
 
                 TokenTree_push(tokens, x);
