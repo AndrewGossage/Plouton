@@ -146,16 +146,12 @@ float TokenTree_run(TokenTree *tokens, TokenTree *scope) {
             continue;
         }
         if (t.tag == FUNCTION && t.val.fn == GET) {
-            printf("GET $%d from scope with %d tokens\n", (int)t.id,
-                   scope ? scope->len : -1);
             if (scope) {
-                printf("  accessing scope->list[%d] = %f\n", (int)(t.id + 1),
-                       t.val.number);
                 for (int k = 0; k < scope->len; k++) {
                     printf("  scope[%d]: tag=%d\n", k, scope->list[k].tag);
                 }
             }
-            t = scope->list[t.id + 1];
+            t = scope->list[t.id];
         }
         if (t.tag == SCOPE) {
             acc = op(acc, TokenTree_run(t.val.scope, t.val.scope));
@@ -255,6 +251,9 @@ TokenTree *TokenTree_parse(char s[]) {
             Token x;
             x.id = 0;
             x.tag = FUNCTION;
+            if (strncmp(token, "/*", 2) == 0) {
+                return tokens;
+            }
             if (strncmp(token, "fn", 2) == 0) {
                 token = strtok(NULL, " ");
                 const unsigned long id = hash((unsigned char *)token);

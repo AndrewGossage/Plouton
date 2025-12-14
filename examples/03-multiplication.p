@@ -1,4 +1,12 @@
+( # everything is a function including comments  )
+
 (
-    ( fn x ( * $1 2 ) )
-    ( + ( !x 0 4 ) ( / 1 2) )
+    ( # consts are functions  )
+    ( fn y ( 2 ) )
+
+    ( # functions are functions  )
+    ( fn x ( * $0 3 ) )
+
+    ( # expressions are functions )
+    ( + ( !x ( !y ) ) ( / 1 2) )
 )
