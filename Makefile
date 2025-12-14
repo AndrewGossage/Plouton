@@ -7,9 +7,9 @@ CFLAGS  = -g -Wall
 # the name to use for both the target source file, and the output file:
 OUTPUT_DIR = ./dist
 SRC_DIR = ./src
-TARGET = main
+TARGET = plouton
 EXECUTABLE = $(OUTPUT_DIR)/$(TARGET)
-
+DEBUGGER = lldb
 # Find all .c files in src directory
 SOURCES != ls $(SRC_DIR)/*.c 
 
@@ -25,6 +25,10 @@ $(EXECUTABLE): $(SOURCES) $(OUTPUT_DIR)
 
 run: $(EXECUTABLE)
 	@$(EXECUTABLE)
+
+debug: $(EXECUTABLE)
+	@$(DEBUGGER) $(EXECUTABLE)
+
 
 clean:
 	@rm -rf $(OUTPUT_DIR)
