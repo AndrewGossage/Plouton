@@ -1,3 +1,4 @@
+#include "parse.h"
 #include "run.h"
 #include "token.h"
 #include <stdio.h>

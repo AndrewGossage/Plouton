@@ -5,7 +5,7 @@
     ( fn y ( 2 ) )
 
     ( # functions are functions  )
-    ( fn x ( * $0 3 ) )
+    ( fn x ( * $0 ( !y )  ) )
 
     ( # expressions are functions )
     ( + ( !x ( !y ) ) ( / 1 2) )
