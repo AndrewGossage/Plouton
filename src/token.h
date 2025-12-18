@@ -18,6 +18,7 @@ typedef enum {
     DIV,
     MUL,
     GET,
+    CON,
     USER_FUNCTION,
 
 } Fn;

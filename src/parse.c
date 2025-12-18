@@ -80,7 +80,7 @@ TokenTree *TokenTree_parse(char s[]) {
 
             free(subs);
 
-            token = strtok(end, " ");
+            token = strtok(end, " \n");
             continue;
 
         } else {
@@ -92,9 +92,9 @@ TokenTree *TokenTree_parse(char s[]) {
                 return tokens;
             }
             if (strncmp(token, "fn", 2) == 0) {
-                token = strtok(NULL, " ");
+                token = strtok(NULL, " \n");
                 const unsigned long id = hash((unsigned char *)token);
-                token = strtok(NULL, " ");
+                token = strtok(NULL, " \n");
                 Token x;
                 rest = token + strlen(token) + 1;
                 char *end = find_end(rest);
@@ -104,13 +104,16 @@ TokenTree *TokenTree_parse(char s[]) {
                 x.id = id;
                 TokenTree_push(&global_functions, x);
                 free(subs);
-                token = strtok(end, " ");
+                token = strtok(end, " \n");
                 continue;
+            } else if (strncmp(token, "?", 1) == 0) {
+                x.val.fn = CON;
+                TokenTree_push(tokens, x);
+
             } else if (token[0] == '!') {
                 char *sub_token = token + 1;
                 x.tag = FUNCTION;
                 x.val.fn = USER_FUNCTION;
-                printf("TOKEN::%s:: REST::%s::", token, rest);
 
                 x.id = hash((unsigned char *)sub_token);
 
@@ -137,7 +140,7 @@ TokenTree *TokenTree_parse(char s[]) {
                 TokenTree_push(tokens, x);
             }
         }
-        token = strtok(NULL, " ");
+        token = strtok(NULL, " \n");
     }
     return tokens;
 }
