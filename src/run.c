@@ -19,29 +19,6 @@ int global_functions_init() {
     return 0;
 }
 void global_functions_deinit() { free(global_functions.list); }
-
-void print_token(Token t) {
-    switch (t.tag) {
-    case NUMBER:
-        break;
-    case FUNCTION:
-        printf(" - function #%d\n ", (int)t.id);
-        break;
-    case START:
-        printf(" - start \n ");
-        break;
-    case END:
-        printf(" - end \n ");
-        break;
-    case SCOPE:
-        printf(" - scope \n ");
-        break;
-    default:
-        printf(" - unknown tag \n");
-
-        break;
-    }
-}
 int check_debug() {
     char *val = getenv("DEBUG_TREE");
 
@@ -91,8 +68,9 @@ float TokenTree_run(TokenTree *tokens, TokenTree *scope) {
                 } else {
                     return TokenTree_run(tokens->list[2].val.scope, scope);
                 }
-                printf("%d %0.2f\n", k, v);
-                return 88;
+            } else if (first.val.fn == PRINT) {
+                return print_cmd(tokens, scope);
+
             } else {
                 op = get_operation(first.val.fn);
             }
@@ -103,7 +81,6 @@ float TokenTree_run(TokenTree *tokens, TokenTree *scope) {
         if (t.tag == FUNCTION && t.val.fn == GET) {
 
             t = scope->list[t.id + 1];
-            printf("tag=%d\n", t.tag);
         }
 
         if (i == 1) {

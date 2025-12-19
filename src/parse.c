@@ -36,6 +36,22 @@ char *substring(const char *start, const char *end) {
 
     return result;
 }
+
+char *find_str_end(char *s) {
+    char *end = s;
+    int depth = 1;
+    while (end[0] != '\n') {
+        if (depth <= 0) {
+            return end;
+        }
+        if (end[0] == '`') {
+            depth--;
+        }
+        end++;
+    }
+    return end;
+}
+
 char *find_end(char *s) {
     char *end = s;
     int depth = 1;
@@ -82,6 +98,22 @@ TokenTree *TokenTree_parse(char s[]) {
 
             token = strtok(end, " \n");
             continue;
+        } else if (token[0] == '`') {
+            Token x;
+            char *end = find_str_end(rest);
+            char *subs = substring(rest, end - 1);
+            char *s1 = strcat(token + 1, " ");
+            char *string = strcat(s1, subs);
+            free(subs);
+            free(s1);
+            x.tag = STRING;
+            x.val.string.ptr = string;
+
+            x.val.string.len = strlen(subs);
+            TokenTree_push(tokens, x);
+
+            token = strtok(end, " \n");
+            continue;
 
         } else {
             // Handle other tokens (FUNCTION, variables, etc.)
@@ -108,6 +140,9 @@ TokenTree *TokenTree_parse(char s[]) {
                 continue;
             } else if (strncmp(token, "?", 1) == 0) {
                 x.val.fn = CON;
+                TokenTree_push(tokens, x);
+            } else if (strncmp(token, "print", 5) == 0) {
+                x.val.fn = PRINT;
                 TokenTree_push(tokens, x);
 
             } else if (token[0] == '!') {
