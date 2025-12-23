@@ -6,6 +6,7 @@ typedef struct TokenTree TokenTree;
 typedef enum {
     NUMBER,
     FUNCTION,
+    STRING,
     START,
     END,
     SCOPE,
@@ -19,16 +20,24 @@ typedef enum {
     DIV,
     MUL,
     GET,
+    PRINT,
     CON,
     USER_FUNCTION,
 
 } Fn;
 
+typedef struct {
+
+    char *ptr;
+    int len;
+
+} Slice;
+
 typedef union {
     float number;
-    char *string;
+    Slice string;
     int active;
-    TokenTree *scope;  // Now TokenTree is known
+    TokenTree *scope;  
     Fn fn;
 } TokenPayload;
 
