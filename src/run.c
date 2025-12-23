@@ -120,9 +120,22 @@ float TokenTree_run(TokenTree *tokens, TokenTree *scope) {
                 TokenTree *new_scope = TokenTree_new(tokens->len);
 
                 if (x.id == t.id) {
-                    for (int kk = 0; kk < tokens->len; kk++) {
+                    for (int kk = 1; kk < tokens->len; kk++) {
                         Token y = tokens->list[kk];
-                        new_scope->list[kk] = y; // Shift down by 1
+
+                        if (y.tag == SCOPE || y.tag == FUNCTION) {
+
+                            // Evaluate the scope argument in caller's
+                            // context
+                            Token evaluated;
+                            evaluated.tag = NUMBER;
+                            evaluated.val.number =
+                                TokenTree_run(y.val.scope, scope);
+
+                            new_scope->list[kk] = evaluated;
+                        } else {
+                            new_scope->list[kk] = y;
+                        }
                     }
                     new_scope->len = tokens->len;
                     return op(acc, TokenTree_run(x.val.scope, new_scope));

@@ -53,20 +53,26 @@ void print_token(Token t) {
 
 float print_cmd(TokenTree *tokens, TokenTree *scope) {
     for (int k = 1; k < tokens->len; k++) {
-        switch (tokens->list[k].tag) {
+        Token t = tokens->list[k];
+        if (t.tag == FUNCTION && t.val.fn == GET) {
+
+            t = scope->list[t.id + 1];
+        }
+
+        switch (t.tag) {
         case SCOPE:
             printf("%0.2f ",
-                   add(0, TokenTree_run(tokens->list[k].val.scope,
+                   add(0, TokenTree_run(t.val.scope,
                                         scope)));
             break;
         case NUMBER:
-            printf("%0.2f ", tokens->list[k].val.number);
+            printf("%0.2f ", t.val.number);
             break;
         case STRING: 
-            printf("%s ", tokens->list[k].val.string.ptr);
+            printf("%s ", t.val.string.ptr);
             break;
         default:
-            print_token(tokens->list[k]);
+            print_token(t);
             break;
         }
     }
