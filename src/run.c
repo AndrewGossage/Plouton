@@ -117,8 +117,15 @@ float TokenTree_run(TokenTree *tokens, TokenTree *scope) {
             }
             for (int j = 0; j < global_functions.len; j++) {
                 Token x = fns[j];
+                TokenTree *new_scope = TokenTree_new(tokens->len);
+
                 if (x.id == t.id) {
-                    return op(acc, TokenTree_run(x.val.scope, tokens));
+                    for (int kk = 0; kk < tokens->len; kk++) {
+                        Token y = tokens->list[kk];
+                        new_scope->list[kk] = y; // Shift down by 1
+                    }
+                    new_scope->len = tokens->len;
+                    return op(acc, TokenTree_run(x.val.scope, new_scope));
                     break;
                 }
             }
