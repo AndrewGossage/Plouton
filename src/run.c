@@ -50,6 +50,7 @@ float TokenTree_run_con(TokenTree *tokens, TokenTree *scope) {
 
 float TokenTree_run(TokenTree *tokens, TokenTree *scope) {
     float acc = 0;
+
     if (tokens->len == 0) {
         return 0;
     }

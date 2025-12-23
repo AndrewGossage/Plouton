@@ -108,19 +108,19 @@ TokenTree *TokenTree_parse(char s[]) {
             Token x;
             char *end = find_str_end(rest);
             char *subs = substring(rest, end - 1);
-            char *s1 = strcat(token + 1, " ");
-            char *string = strcat(s1, subs);
+
+            size_t len = strlen(token + 1) + 1 + strlen(subs) + 1;
+            char *string = malloc(len);
+            sprintf(string, "%s %s", token + 1, subs);
+
             free(subs);
-            free(s1);
+
             x.tag = STRING;
             x.val.string.ptr = string;
-
-            x.val.string.len = strlen(subs);
+            x.val.string.len = strlen(string);
             TokenTree_push(tokens, x);
-
             token = strtok(end, " \n");
             continue;
-
         } else {
             // Handle other tokens (FUNCTION, variables, etc.)
             Token x;
