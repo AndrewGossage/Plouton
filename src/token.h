@@ -15,6 +15,7 @@ typedef enum {
 typedef enum {
     ADD,
     SUB,
+    ASSERT_EQ,
     DIV,
     MUL,
     GET,

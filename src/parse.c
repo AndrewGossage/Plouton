@@ -53,8 +53,14 @@ char *find_end(char *s) {
     return end;
 }
 TokenTree *TokenTree_parse(char s[]) {
-    TokenTree *tokens = TokenTree_new(10);
+    TokenTree *tokens = TokenTree_new(100);
     char *rest = s;
+    const int l = strlen(s);
+    for (int i = 0; i < l; i++) {
+        if (s[i] == '\n' || s[i] == '\t') {
+            s[i] = ' ';
+        }
+    }
     char *token = strtok(s, " \n");
 
     while (token != NULL) {
@@ -124,6 +130,9 @@ TokenTree *TokenTree_parse(char s[]) {
                 x.val.fn = GET;
                 x.id = strtol(sub_token, NULL, 10);
 
+                TokenTree_push(tokens, x);
+            } else if (strcmp(token, "A_EQ") == 0) {
+                x.val.fn = ASSERT_EQ;
                 TokenTree_push(tokens, x);
 
             } else if (strncmp(token, "+", 1) == 0) {

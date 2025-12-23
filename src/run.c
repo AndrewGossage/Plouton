@@ -83,7 +83,6 @@ float TokenTree_run(TokenTree *tokens, TokenTree *scope) {
         if (first.tag == FUNCTION) {
             if (first.val.fn == CON) {
                 int k = 1;
-                print_token(tokens->list[k]);
                 float v =
                     add(0, TokenTree_run(tokens->list[k].val.scope, scope));
                 if (v == 0) {
@@ -103,7 +102,6 @@ float TokenTree_run(TokenTree *tokens, TokenTree *scope) {
         if (t.tag == FUNCTION && t.val.fn == GET) {
 
             t = scope->list[t.id + 1];
-            printf("tag=%d\n", t.tag);
         }
 
         if (i == 1) {
@@ -123,7 +121,6 @@ float TokenTree_run(TokenTree *tokens, TokenTree *scope) {
         if (t.tag == FUNCTION && t.val.fn == GET) {
             if (scope) {
                 for (int k = 0; k < scope->len; k++) {
-                    printf("  scope[%d]: tag=%d\n", k, scope->list[k].tag);
                 }
             }
             t = scope->list[t.id];

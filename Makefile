@@ -33,4 +33,13 @@ debug: $(EXECUTABLE)
 clean:
 	@rm -rf $(OUTPUT_DIR)
 
+
+test: $(EXECUTABLE)
+	@for test_file in $(wildcard tests/*); do \
+		echo "Running test: $$test_file"; \
+		$(EXECUTABLE) $$test_file || exit 1; \
+	done
+	@echo "All tests passed!"
+
+
 .PHONY: all run clean
