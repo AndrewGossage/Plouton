@@ -182,6 +182,15 @@ TokenTree *TokenTree_parse(char s[]) {
             } else if (strncmp(token, "*", 1) == 0) {
                 x.val.fn = MUL;
                 TokenTree_push(tokens, x);
+            } else if (strncmp(token, "<", 1) == 0) {
+                x.val.fn = LT;
+                TokenTree_push(tokens, x);
+            } else if (strncmp(token, ">", 1) == 0) {
+                x.val.fn = GT;
+                TokenTree_push(tokens, x);
+            } else if (strncmp(token, "=", 1) == 0) {
+                x.val.fn = EQ;
+                TokenTree_push(tokens, x);
             }
         }
         token = strtok(NULL, " \n");

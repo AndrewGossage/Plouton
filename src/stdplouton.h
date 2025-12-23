@@ -18,7 +18,16 @@ float divide(float a, float b) {
     return a / b;
 }
 
+float eq (float a, float b) {
+    if (a == b ){
+        return 1;
+
+    }
+    return 0;
+}
+
 float assert_eq (float a, float b) {
+    printf("ASSERT = %0.2f, %0.2f \n", a, b);
 
     if (a != b ){
         exit(1);
@@ -93,6 +102,8 @@ operation_func get_operation(Fn f) {
         return subtract;
     case ASSERT_EQ:
         return assert_eq;
+    case EQ:
+        return eq;
     default:
         return add;
     }
