@@ -61,6 +61,7 @@ float print_cmd(TokenTree *tokens, TokenTree *scope) {
             break;
         case NUMBER:
             printf("%0.2f ", tokens->list[k].val.number);
+            break;
         case STRING: 
             printf("%s ", tokens->list[k].val.string.ptr);
             break;
