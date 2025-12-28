@@ -79,7 +79,6 @@ float TokenTree_run(TokenTree *tokens, TokenTree *scope) {
         }
 
         if (t.tag == FUNCTION && t.val.fn == GET) {
-
             t = scope->list[t.id + 1];
         }
 
