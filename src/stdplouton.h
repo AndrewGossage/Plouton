@@ -26,6 +26,22 @@ float eq (float a, float b) {
     return 0;
 }
 
+float lt (float a, float b) {
+    if (a < b ){
+        return 1;
+
+    }
+    return 0;
+}
+
+float gt (float a, float b) {
+    return !lt(a,b);
+}
+
+
+
+
+
 float assert_eq (float a, float b) {
     printf("ASSERT = %0.2f, %0.2f \n", a, b);
 
@@ -104,6 +120,10 @@ operation_func get_operation(Fn f) {
         return assert_eq;
     case EQ:
         return eq;
+    case LT:
+        return lt;
+    case GT:
+        return gt;
     default:
         return add;
     }
