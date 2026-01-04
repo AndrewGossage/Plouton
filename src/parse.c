@@ -126,10 +126,7 @@ TokenTree *TokenTree_parse(char s[]) {
             Token x;
             x.id = 0;
             x.tag = FUNCTION;
-            if (strncmp(token, "/*", 2) == 0) {
-                return tokens;
-            }
-            if (strncmp(token, "fn", 2) == 0) {
+            if (strncmp(token, "fn", 3) == 0) {
                 token = strtok(NULL, " \n");
                 const unsigned long id = hash((unsigned char *)token);
                 token = strtok(NULL, " \n");
@@ -144,10 +141,10 @@ TokenTree *TokenTree_parse(char s[]) {
                 free(subs);
                 token = strtok(end, " \n");
                 continue;
-            } else if (strncmp(token, "?", 1) == 0) {
+            } else if (strncmp(token, "?", 2) == 0) {
                 x.val.fn = CON;
                 TokenTree_push(tokens, x);
-            } else if (strncmp(token, "print", 5) == 0) {
+            } else if (strncmp(token, "print", 6) == 0) {
                 x.val.fn = PRINT;
                 TokenTree_push(tokens, x);
 
@@ -170,25 +167,25 @@ TokenTree *TokenTree_parse(char s[]) {
                 x.val.fn = ASSERT_EQ;
                 TokenTree_push(tokens, x);
 
-            } else if (strncmp(token, "+", 1) == 0) {
+            } else if (strncmp(token, "+", 2) == 0) {
                 x.val.fn = ADD;
                 TokenTree_push(tokens, x);
-            } else if (strncmp(token, "-", 1) == 0) {
+            } else if (strncmp(token, "-", 2) == 0) {
                 x.val.fn = SUB;
                 TokenTree_push(tokens, x);
-            } else if (strncmp(token, "/", 1) == 0) {
+            } else if (strncmp(token, "/", 2) == 0) {
                 x.val.fn = DIV;
                 TokenTree_push(tokens, x);
-            } else if (strncmp(token, "*", 1) == 0) {
+            } else if (strncmp(token, "*", 2) == 0) {
                 x.val.fn = MUL;
                 TokenTree_push(tokens, x);
-            } else if (strncmp(token, "<", 1) == 0) {
+            } else if (strncmp(token, "<", 2) == 0) {
                 x.val.fn = LT;
                 TokenTree_push(tokens, x);
-            } else if (strncmp(token, ">", 1) == 0) {
+            } else if (strncmp(token, ">", 2) == 0) {
                 x.val.fn = GT;
                 TokenTree_push(tokens, x);
-            } else if (strncmp(token, "=", 1) == 0) {
+            } else if (strncmp(token, "=", 2) == 0) {
                 x.val.fn = EQ;
                 TokenTree_push(tokens, x);
             }
